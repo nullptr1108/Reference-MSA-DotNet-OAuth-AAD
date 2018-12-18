@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+
+  health.monitor:
+    image: ${DOCKER_REGISTRY-}healthmonitor
+    build:
+      context: .
+      dockerfile: Health.Monitor/Dockerfile
+
+  svc.one:
+    image: ${DOCKER_REGISTRY-}svcone
+    build:
+      context: .
+      dockerfile: Svc.One/Dockerfile 
+
+  svc.two:
+    image: ${DOCKER_REGISTRY-}svctwo
+    build:
+      context: .
+      dockerfile: Svc.Two/Dockerfile 
+
+  svc.three:
+    image: ${DOCKER_REGISTRY-}svcthree
+    build:
+      context: .
+      dockerfile: Svc.Three/Dockerfile    
+
+  
