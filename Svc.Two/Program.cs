@@ -47,11 +47,11 @@ namespace Svc_Two
 
                     var certPassword = (localDebug)
                         ? configuration.GetValue<string>("Kestrel:Certificates:LocalDev:Password")
-                        : configuration.GetValue<string>("Kestrel:Certificates:Development:Password");
+                        : configuration.GetValue<string>("Kestrel:Certificates:ContainerDev:Password");
 
                     var certPath = (localDebug)
                         ? $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}{configuration.GetValue<string>("Kestrel:Certificates:LocalDev:Path")}"
-                        : configuration.GetValue<string>("Kestrel:Certificates:Development:Path");
+                        : configuration.GetValue<string>("Kestrel:Certificates:ContainerDev:Path");
 
                     options.Listen(IPAddress.Any, httpPort);
                     options.Listen(IPAddress.Any, httpsPort, listenOptions => { listenOptions.UseHttps(certPath, certPassword); });
