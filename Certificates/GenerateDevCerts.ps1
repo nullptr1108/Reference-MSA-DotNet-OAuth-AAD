@@ -10,13 +10,10 @@ $pword = New-Guid
 
 $env:path = $env:path + ";C:\Program Files\Git\usr\bin"
 
-openssl req -x509 -newkey rsa:4096 -keyout $keyPemFile -out $certPemFile -days 365 -nodes -subj "/C=US/ST=TX/L=DFW/O=NullPtrLtd/OU=AppDev/CN=nullptrltd.com" -reqexts "v3_req" -config openssl.cnf
+openssl req -x509 -newkey rsa:4096 -keyout $keyPemFile -out $certPemFile -nodes -subj "/C=US/ST=TX/L=DFW/O=NullPtrLtd/OU=AppDev/CN=nullptrltd.com" -reqexts "v3_req" -config .\OpenSSLConfig.cnf
 openssl pkcs12 -export -out $pfxFile -inkey $keyPemFile -in $certPemFile -password pass:$pword
 openssl pkcs12 -in $pfxFile -nocerts -nodes -out $keyFile -password pass:$pword
 openssl pkcs12 -in $pfxFile -clcerts -nokeys -out $crtFile -password pass:$pword
-
-dotnet dev-certs https --trust --check
-dotnet dev-certs https --trust -ep $pfxFile -p $pword
 
 $winPath = "$env:APPDATA\ASP.NET\https\$pfxFile"
 $path = "/root/.aspnet/https/$pfxFile"
