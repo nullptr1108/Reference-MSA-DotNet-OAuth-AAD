@@ -82,9 +82,9 @@ namespace Svc_B
                 options.DescribeAllEnumsAsStrings();
                 options.SwaggerDoc("v1", new Info
                 {
-                    Title = "Target API",
+                    Title = "Service B API",
                     Version = "v1",
-                    Description = "The Target Service HTTP API",
+                    Description = "The Service B HTTP API",
                     TermsOfService = "Terms Of Service"
                 });
 
