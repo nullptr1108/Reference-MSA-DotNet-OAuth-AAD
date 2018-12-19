@@ -11,22 +11,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lib.Service", "Lib.Service\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{80B4509D-BCEE-4932-A6B2-586538BDBB65}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{76AD1CD0-7548-41CF-A741-71584AE16BB4}"
-	ProjectSection(SolutionItems) = preProject
-		DevCerts.ps1 = DevCerts.ps1
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HealthMonitors", "HealthMonitors", "{7ABB56FB-AA75-45A0-B7AD-691B2D42F390}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Health.Monitor", "Health.Monitor\Health.Monitor.csproj", "{DCD5F074-E06A-466F-86CC-01F06B3F552B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lib.HealthChecks", "Lib.HealthChecks\Lib.HealthChecks.csproj", "{8C781F8D-BCC8-4837-B1DF-C2415AE996A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svc.One", "Svc.One\Svc.One.csproj", "{01D0AB55-11FC-4D97-9C05-5F84B4C7EE23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svc.A", "Svc.A\Svc.A.csproj", "{01D0AB55-11FC-4D97-9C05-5F84B4C7EE23}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svc.Three", "Svc.Three\Svc.Three.csproj", "{E33F036C-769B-45CF-8401-D7BA40502773}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svc.C", "Svc.C\Svc.C.csproj", "{E33F036C-769B-45CF-8401-D7BA40502773}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svc.Two", "Svc.Two\Svc.Two.csproj", "{42205E70-A275-4879-B428-98F1B18B5C4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svc.B", "Svc.B\Svc.B.csproj", "{42205E70-A275-4879-B428-98F1B18B5C4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

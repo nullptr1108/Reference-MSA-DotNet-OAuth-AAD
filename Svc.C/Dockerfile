@@ -9,16 +9,18 @@ EXPOSE 443
 
 FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
-COPY ["Health.Monitor/Health.Monitor.csproj", "Health.Monitor/"]
-RUN dotnet restore "Health.Monitor/Health.Monitor.csproj"
+COPY ["Svc.C/Svc.C.csproj", "Svc.C/"]
+COPY ["Lib.Service/Lib.Service.csproj", "Lib.Service/"]
+COPY ["Lib.HealthChecks/Lib.HealthChecks.csproj", "Lib.HealthChecks/"]
+RUN dotnet restore "Svc.C/Svc.C.csproj"
 COPY . .
-WORKDIR "/src/Health.Monitor"
-RUN dotnet build "Health.Monitor.csproj" -c Release -o /app
+WORKDIR "/src/Svc.C"
+RUN dotnet build "Svc.C.csproj" -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish "Health.Monitor.csproj" -c Release -o /app
+RUN dotnet publish "Svc.C.csproj" -c Release -o /app
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Health.Monitor.dll"]
+ENTRYPOINT ["dotnet", "Svc.C.dll"]

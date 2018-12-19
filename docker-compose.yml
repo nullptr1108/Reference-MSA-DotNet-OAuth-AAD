@@ -8,22 +8,22 @@ services:
       context: .
       dockerfile: Health.Monitor/Dockerfile
 
-  svc.one:
-    image: ${DOCKER_REGISTRY-}svcone
+  svc.a:
+    image: ${DOCKER_REGISTRY-}svca
     build:
       context: .
-      dockerfile: Svc.One/Dockerfile 
+      dockerfile: Svc.A/Dockerfile 
 
-  svc.two:
-    image: ${DOCKER_REGISTRY-}svctwo
+  svc.b:
+    image: ${DOCKER_REGISTRY-}svcb
     build:
       context: .
-      dockerfile: Svc.Two/Dockerfile 
+      dockerfile: Svc.B/Dockerfile 
 
-  svc.three:
-    image: ${DOCKER_REGISTRY-}svcthree
+  svc.c:
+    image: ${DOCKER_REGISTRY-}svcc
     build:
       context: .
-      dockerfile: Svc.Three/Dockerfile    
+      dockerfile: Svc.C/Dockerfile    
 
   
