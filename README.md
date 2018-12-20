@@ -4,6 +4,9 @@ This repository shows a basic micro service application with 3 service end point
 ## Kestrel Applications
 The standard .Net Core 2.2 approach for web service end points have been extended in this reference and are accomplished through a Kestrel served end point that runs in a Docker container.
 
+## Swagger Implmentation
+ToDo - Add Swagger Details
+
 ## Health Monitor Application
 The health monitor application is an implmentation of the AspNetCore.HealthChecks project. The monitor application currently extends a heartbeat monitor in each of the service end points which will return healthy. This can be extended in multiple ways and there will be additional examples of this throughout the reference guides.
 
