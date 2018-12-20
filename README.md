@@ -8,4 +8,4 @@ The standard .Net Core 2.2 approach for web service end points have been extende
 The health monitor application is an implmentation of the AspNetCore.HealthChecks project. The monitor application currently extends a heartbeat monitor in each of the service end points which will return healthy. This can be extended in multiple ways and there will be additional examples of this throughout the reference guides.
 
 ## Self Signed Certificates
-Since this project is meant to run outside of the Visual Studio environment a solution needed to be found that would allow for the creation of self signed certificates that could be used by the containers. This is to allow for the SSL protected communication within the container orchestration. 
+Since this project is meant to run outside of the Visual Studio environment a solution needed to be found that would allow for the creation of self signed certificates that could be used by the containers. This is to allow for the SSL protected communication within the container orchestration. See the Reference-SelfSignedCerts repo for more details around how self signed developer certificates are being used in this reference project
