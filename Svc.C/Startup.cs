@@ -38,8 +38,8 @@ namespace Svc_C
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            RegisterAppInsights(services);  
-                      
+            RegisterAppInsights(services);
+
             // Add framework services.
             services.AddMvc(options =>
             {
@@ -76,27 +76,36 @@ namespace Svc_C
 
             services.AddDbContext<SvcDbContext>(opt => opt.UseInMemoryDatabase(databaseName: "SvcDb"));
 
+            var azureAdB2CTenant = Configuration.GetValue<string>("AzureAdB2C:Tenant");
+            var azureAdB2CAppIdUri = Configuration.GetValue<string>("AzureAdB2C:AppIdUri");
+            var azureAdB2CPolicy = Configuration.GetValue<string>("AzureAdB2C:Policy");
 
             services.AddSwaggerGen(options =>
             {
                 options.DescribeAllEnumsAsStrings();
                 options.SwaggerDoc("v1", new Info
                 {
-                    Title = "Service C API",
+                    Title = "Svc C API",
                     Version = "v1",
                     Description = "The Service C HTTP API",
                     TermsOfService = "Terms Of Service"
+                });
+
+                options.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                {
+                    { "oauth2", new[] { "openid", $"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/read.access", $"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/write.access" } }
                 });
 
                 options.AddSecurityDefinition("oauth2", new OAuth2Scheme
                 {
                     Type = "oauth2",
                     Flow = "implicit",
-                    AuthorizationUrl = $"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/authorize",
-                    TokenUrl = $"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/token",
-                    Scopes = new Dictionary<string, string>()
+                    AuthorizationUrl = $"https://login.microsoftonline.com/{azureAdB2CTenant}/oauth2/v2.0/authorize?p={azureAdB2CPolicy}&response_mode=fragment",
+                    Scopes = new Dictionary<string, string>
                     {
-                        { "target", "Target API" }
+                        {"openid", "OpenID"},
+                        {$"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/read.access", "API Access for Reads" },
+                        {$"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/write.access", "API Access for Writes" }
                     }
                 });
 
@@ -122,11 +131,11 @@ namespace Svc_C
 
             return new AutofacServiceProvider(container.Build());
         }
-        
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            
+
             //loggerFactory.AddAzureWebAppDiagnostics();
             loggerFactory.AddApplicationInsights(app.ApplicationServices, LogLevel.Trace);
 
@@ -141,19 +150,22 @@ namespace Svc_C
             app.Map("/liveness", lapp => lapp.Run(async ctx => ctx.Response.StatusCode = 200));
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
-            app.UseStaticFiles();          
+            app.UseStaticFiles();
             app.UseCors("CorsPolicy");
 
             ConfigureAuth(app);
 
             app.UseMvcWithDefaultRoute();
 
+            var azureAdB2CClientId = Configuration.GetValue<string>("AzureAdB2C:ClientId");
+            var azureAdB2CAppIdUri = Configuration.GetValue<string>("AzureAdB2C:AppIdUri");
+
             app.UseSwagger()
                .UseSwaggerUI(c =>
                {
-                   c.SwaggerEndpoint($"{ (!string.IsNullOrEmpty(pathBase) ? pathBase : string.Empty) }/swagger/v1/swagger.json", "Target.API V1");
-                   c.OAuthClientId ("targetswaggerui");
-                   c.OAuthAppName("Target Swagger UI");
+                   c.SwaggerEndpoint($"{ (!string.IsNullOrEmpty(pathBase) ? pathBase : string.Empty) }/swagger/v1/swagger.json", "Svc.C API V1");
+                   c.OAuthClientId(azureAdB2CClientId);
+                   c.OAuthAppName(azureAdB2CAppIdUri);
                });
 
             app.UseHealthChecks("/health", new HealthCheckOptions()
@@ -174,7 +186,7 @@ namespace Svc_C
         {
             services.AddApplicationInsightsTelemetry(Configuration);
             var orchestratorType = Configuration.GetValue<string>("OrchestratorType");
-            
+
             if (orchestratorType?.ToUpper() == "K8S")
             {
                 // Enable K8s telemetry initializer
@@ -187,18 +199,21 @@ namespace Svc_C
             // prevent from mapping "sub" claim to nameidentifier.
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
-            var identityUrl = Configuration.GetValue<string>("IdentityUrl"); 
-                
+            var azureAdB2CTenant = Configuration.GetValue<string>("AzureAdB2C:Tenant");
+            var azureAdB2CClientId = Configuration.GetValue<string>("AzureAdB2C:ClientId");
+            var azureAdB2CPolicy = Configuration.GetValue<string>("AzureAdB2C:Policy");
+
             services.AddAuthentication(options =>
             {
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-            }).AddJwtBearer(options =>
+            }).AddJwtBearer(jwtOptions =>
             {
-                options.Authority = identityUrl;
-                options.RequireHttpsMetadata = false;
-                options.Audience = "target";
+                jwtOptions.Authority = $"https://login.microsoftonline.com/tfp/{azureAdB2CTenant}/{azureAdB2CPolicy}/v2.0/";
+                jwtOptions.Audience = azureAdB2CClientId;
+                jwtOptions.RequireHttpsMetadata = false;
             });
         }
 
@@ -212,6 +227,6 @@ namespace Svc_C
             app.UseAuthentication();
         }
 
-        
+
     }
 }

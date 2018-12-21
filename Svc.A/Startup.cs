@@ -76,6 +76,9 @@ namespace Svc_A
 
             services.AddDbContext<SvcDbContext>(opt => opt.UseInMemoryDatabase(databaseName: "SvcDb"));
 
+            var azureAdB2CTenant = Configuration.GetValue<string>("AzureAdB2C:Tenant");
+            var azureAdB2CAppIdUri = Configuration.GetValue<string>("AzureAdB2C:AppIdUri");
+            var azureAdB2CPolicy = Configuration.GetValue<string>("AzureAdB2C:Policy");
 
             services.AddSwaggerGen(options =>
             {
@@ -88,15 +91,21 @@ namespace Svc_A
                     TermsOfService = "Terms Of Service"
                 });
 
+                options.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                {
+                    { "oauth2", new[] { "openid", $"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/read.access", $"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/write.access" } }
+                });
+
                 options.AddSecurityDefinition("oauth2", new OAuth2Scheme
                 {
                     Type = "oauth2",
                     Flow = "implicit",
-                    AuthorizationUrl = $"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/authorize",
-                    TokenUrl = $"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/token",
-                    Scopes = new Dictionary<string, string>()
+                    AuthorizationUrl = $"https://login.microsoftonline.com/{azureAdB2CTenant}/oauth2/v2.0/authorize?p={azureAdB2CPolicy}&response_mode=fragment",
+                    Scopes = new Dictionary<string, string>
                     {
-                        { "target", "Target API" }
+                        {"openid", "OpenID"},
+                        {$"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/read.access", "API Access for Reads" },
+                        {$"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/write.access", "API Access for Writes" }
                     }
                 });
 
@@ -148,12 +157,15 @@ namespace Svc_A
 
             app.UseMvcWithDefaultRoute();
 
+            var azureAdB2CClientId = Configuration.GetValue<string>("AzureAdB2C:ClientId");
+            var azureAdB2CAppIdUri = Configuration.GetValue<string>("AzureAdB2C:AppIdUri");
+
             app.UseSwagger()
                .UseSwaggerUI(c =>
                {
-                   c.SwaggerEndpoint($"{ (!string.IsNullOrEmpty(pathBase) ? pathBase : string.Empty) }/swagger/v1/swagger.json", "Target.API V1");
-                   c.OAuthClientId ("targetswaggerui");
-                   c.OAuthAppName("Target Swagger UI");
+                   c.SwaggerEndpoint($"{ (!string.IsNullOrEmpty(pathBase) ? pathBase : string.Empty) }/swagger/v1/swagger.json", "Svc.A API V1");
+                   c.OAuthClientId(azureAdB2CClientId);
+                   c.OAuthAppName(azureAdB2CAppIdUri);
                });
 
             app.UseHealthChecks("/health", new HealthCheckOptions()
@@ -187,18 +199,21 @@ namespace Svc_A
             // prevent from mapping "sub" claim to nameidentifier.
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
-            var identityUrl = Configuration.GetValue<string>("IdentityUrl"); 
-                
+            var azureAdB2CTenant = Configuration.GetValue<string>("AzureAdB2C:Tenant");
+            var azureAdB2CClientId = Configuration.GetValue<string>("AzureAdB2C:ClientId");
+            var azureAdB2CPolicy = Configuration.GetValue<string>("AzureAdB2C:Policy");
+
             services.AddAuthentication(options =>
             {
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-            }).AddJwtBearer(options =>
+            }).AddJwtBearer(jwtOptions =>
             {
-                options.Authority = identityUrl;
-                options.RequireHttpsMetadata = false;
-                options.Audience = "target";
+                jwtOptions.Authority = $"https://login.microsoftonline.com/tfp/{azureAdB2CTenant}/{azureAdB2CPolicy}/v2.0/";
+                jwtOptions.Audience = azureAdB2CClientId;
+                jwtOptions.RequireHttpsMetadata = false;
             });
         }
 
