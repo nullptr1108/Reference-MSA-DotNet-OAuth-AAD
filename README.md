@@ -71,4 +71,114 @@ From inside the desired subscription select create resource > Identity > Azure A
 
 ![AzurePic12](/dev_images/2018-12-21_15-35-46.png)
 
+Now that everything is created we will need to add a policy that will be used by the application. In this example we are created a SUSI policy which is Sign Up / Sign In policy. In this policy we will ask the user for their Name and City as a part of their sign up policy.
+
+![AzurePic13](/dev_images/2018-12-21_16-27-20.png)
+
+Since this is just using basic email authentication it everything is pretty straightforward with the setup here. If there are social providers or custom IDPs that are involved there will be more steps but that will be covered in a different reference application.
+
+![AzurePic14](/dev_images/2018-12-21_16-29-30.png)
+
 At this point all the work that needs to be done in Azure is completed. 
+
+### Code Changes in the Projects
+The code samples that follow here are consistent across all 4 projects in the sample solution. In the `Startup.cs` file and the `public IServiceProvider ConfigureServices(IServiceCollection services)` method we will add the following code
+```
+IServiceProvider ConfigureServices(IServiceCollection services)
+...
+  var azureAdB2CTenant = Configuration.GetValue<string>("AzureAdB2C:Tenant");
+  var azureAdB2CAppIdUri = Configuration.GetValue<string>("AzureAdB2C:AppIdUri");
+  var azureAdB2CPolicy = Configuration.GetValue<string>("AzureAdB2C:Policy");
+
+  services.AddSwaggerGen(options =>
+  {
+    ...
+    options.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+      {
+        { "oauth2", new[] { "openid", $"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/read.access" } }
+      });
+
+    options.AddSecurityDefinition("oauth2", new OAuth2Scheme
+      {
+        Type = "oauth2",
+        Flow = "implicit",
+        AuthorizationUrl = $"https://login.microsoftonline.com/{azureAdB2CTenant}/oauth2/v2.0/authorize?p={azureAdB2CPolicy}&response_mode=fragment",
+        Scopes = new Dictionary<string, string>
+          {
+            {"openid", "OpenID"},
+            {$"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/read.access", "API Access for Reads" },
+            {$"https://{azureAdB2CTenant}/{azureAdB2CAppIdUri}/write.access", "API Access for Writes" }
+          }
+      }
+  ); 
+...
+}
+```   
+Of note in the code sample above is the listing of the Scopes that are provided by the API level. You will see in the `AppSettings.JSON` file the configuration values that are being pulled in for the string interpolation values. 
+
+In the method `public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)` we will add the following code which will add the OAuth client configuration to the Swagger UI. This is effectively registering the client to point to the OAuth identity provider that is being used (Azure B2C)
+```
+public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+{
+...
+  var azureAdB2CClientId = Configuration.GetValue<string>("AzureAdB2C:ClientId");
+  var azureAdB2CAppIdUri = Configuration.GetValue<string>("AzureAdB2C:AppIdUri");
+
+  app.UseSwagger()
+     .UseSwaggerUI(c =>
+      {
+        c.SwaggerEndpoint($"{ (!string.IsNullOrEmpty(pathBase) ? pathBase : string.Empty) }/swagger/v1/swagger.json", "Svc.A API V1");
+        c.OAuthClientId(azureAdB2CClientId);
+        c.OAuthAppName(azureAdB2CAppIdUri);
+      }
+    );
+...
+}
+```
+
+The following method will be added `ConfigureAuthService(IServiceCollection services)`. This code is responsible for configuring Swagger to use JWT for authentication. 
+```
+private void ConfigureAuthService(IServiceCollection services)
+{
+  // prevent from mapping "sub" claim to nameidentifier.
+  JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+  var azureAdB2CTenant = Configuration.GetValue<string>("AzureAdB2C:Tenant");
+  var azureAdB2CClientId = Configuration.GetValue<string>("AzureAdB2C:ClientId");
+  var azureAdB2CPolicy = Configuration.GetValue<string>("AzureAdB2C:Policy");
+
+  services.AddAuthentication(options =>
+    {
+      options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+      options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+      options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    }).AddJwtBearer(jwtOptions =>
+      {
+        jwtOptions.Authority = $"https://login.microsoftonline.com/tfp/{azureAdB2CTenant}/{azureAdB2CPolicy}/v2.0/";
+        jwtOptions.Audience = azureAdB2CClientId;
+        jwtOptions.RequireHttpsMetadata = false;
+      });
+}
+```
+
+Once the code above has been added into the `Startup.cs` file then the following section will need to be added to the AppSettings.json file
+
+```
+"AzureAdB2C": {
+  "Tenant": "NullPtrRefAadB2C.onmicrosoft.com",
+  "ClientId": "440a2531-cbcf-4068-9a8d-XXXXXXXXXXXXXXXX",
+  "Policy": "b2c_1_susi",
+  "AppIdUri": "ReferenceAppAADB2C"
+}
+``` 
+
+In this configuration the Tenant is the Azure B2C tenant that was created through the Azure process above. The client ID is what is called the Application ID in the Azure setup. This is due to a terminology issue between the B2C setup and the OAuth standard. The Policy is the sign up / sign in policy that was defined through the application setup. The AppIDUri was also defined when the application was added in to Azure.
+
+Now that all of this has been configured, the process to secure the controller is fairly straightforward. We will be using the `[Authorize]` decoration in the controllers that are exposed. In the `Svc.A` project the `SvcController.cs` file will contain the following class decoration. This will return a 302 challenge when attempting to access the resources into this end point. The Swagger client will redirect the user to the Azure B2C sign in page and will then redirect the user to the swagger OAuth endpoint which is configured in the redirect URLs in the Azure Application Definition.
+
+```
+[Authorize]
+[Route("api/[controller]")]
+[ApiController]
+public class SvcController : ControllerBase { ... }
+```
