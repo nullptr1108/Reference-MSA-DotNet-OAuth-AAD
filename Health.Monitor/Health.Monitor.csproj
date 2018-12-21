@@ -7,7 +7,7 @@
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <LangVersion>7.1</LangVersion>
     <RootNamespace>Health_Monitor</RootNamespace>
-    <UserSecretsId>1bbc5382-7e77-4a91-8265-d50da0e9dac4</UserSecretsId>
+    <UserSecretsId>f573ceb7-c32e-4bf1-ba9c-8ab90f67cb81</UserSecretsId>
   </PropertyGroup>
 
 
