@@ -7,7 +7,7 @@
     <RootNamespace>Svc_A</RootNamespace>
       <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
       <LangVersion>7.1</LangVersion>
-      <UserSecretsId>90529f9e-fb6a-4071-884c-c6e21462c3db</UserSecretsId>
+      <UserSecretsId>0f3d667b-53e4-4d15-9e14-2508330180ad</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
