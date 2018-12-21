@@ -35,7 +35,7 @@ The first thing to note here is that there is a warning message that the newly c
 ![AzurePic5](/dev_images/2018-12-21_15-00-37.png)
 
 Since this is a brand new tenant there will be no applications linked in so the first one needs to be added
-![AzurePic6)(/dev_images/2018-12-21_15-03-44.png)
+![AzurePic6](/dev_images/2018-12-21_15-03-44.png)
 
 There are several things to note while creating the initial web application within the AAD-B2C tenant
 * The application needs to be given a name. This typically would be a solution level name and in this case ReferenceAppAADB2C has been chosen
