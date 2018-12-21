@@ -18,3 +18,4 @@ This section will walk through all the steps that were needed to enable Azure AD
 
 ### Azure Set Up
 The first step is to set everything up in Azure. This borrows heavily from a guide published at <>
+[Contribution guidelines for this project](dev_images/2018-12-21_14-35-52.png)
