@@ -1,4 +1,4 @@
-# Reference MSA DotNet AAD-B2C
+# Reference MSA DotNet OAuth AAD-B2C
 This repository shows a basic micro service application with 3 service end points. Each of the end points have been configured to use Swagger for documentation and identification of services. Additionally there is a standard Health Monitor application that has been included in the solution. This application will be secured via Azure AD B2C and will have configuration details later in the readme
 
 ## Kestrel Applications
