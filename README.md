@@ -182,3 +182,37 @@ Now that all of this has been configured, the process to secure the controller i
 [ApiController]
 public class SvcController : ControllerBase { ... }
 ```
+### Using Swagger to Prove Functionality
+The swagger UI can be used to establish a B2C session and prove out the functionality of the JWT token flow
+
+Notice the unlocked image by the Authorize button. This indicates that there is currently not a JWT for the user. 
+
+![AzurePic15](/dev_images/2018-12-21_16-53-48.png)
+
+Once the Authorize is selected then a modal dialog appears showing how the OAuth client portion of swagger has been configured. This is a product of the code changes that were implemented in the section above. You will notice the Scopes that are available. Select the ones that are desired and click the authorize button.
+
+![AzurePic16](/dev_images/2018-12-21_16-55-09.png)
+
+When that is selected the user will be re-directed to the SignIn / SignUp page. Since this is the first time that the user is signing in then the link to Sign Up should be selected.
+
+![AzurePic17](/dev_images/2018-12-21_16-55-54.png)
+
+As a part of the Sign Up process the user is prompted for the information that was selected in the SUSI policy definition above (First and Last name as well as City). This will be provided and a local password needs to be provided. This is due to the fact that we are establishing a local account in the B2C tenant and not using a linked IDP.
+
+![AzurePic18](/dev_images/2018-12-21_16-57-41.png)
+
+After the account is created in Azure AD B2C the flow is taken back to the Authorization modal that swagger provide. In this modal we see that the user has been authorized and returned back to the application. This indicates there is a valid JWT in the client that can be passed in to the end points.
+
+![AzurePic19](/dev_images/2018-12-21_16-58-27.png)
+
+Click on the Close button on that dialog and you will see that the lock image on the Authorize button is now closed which indicates that there is an authenticated session. 
+
+![AzurePic20](/dev_images/2018-12-21_16-59-08.png)
+
+This can be tested out as shown below. Since there is a valid session we can test one of the API end points that have been secured behind the Authorize class decoration. As you can see in the result image below the API returned back a code 200 and you see the vaious elements of the JWT returned in the CURL statement.
+
+![AzurePic21](/dev_images/2018-12-21_17-00-22.png)
+
+After proving the API will reply correctly when presented a valid JWT, we log out which opens the Authorized lock image and clears the JWT in the client application. At this point we can select the same API end point which replies back with an Error 401 (Unauthorized). 
+
+![AzurePic22](/dev_images/2018-12-21_17-01-17.png)
